@@ -1,8 +1,8 @@
 """
-Profile datasets
-----------------
+Dataset classes
+---------------
 
-PyTorch dataset classes.
+PyTorch dataset classes for edge profiles.
 """
 
 import abc

@@ -1,8 +1,8 @@
 """
-Landmarks
----------
+Landmark locators
+-----------------
 
-Functions to locate landmarks.
+Functions to locate landmarks from edge profiles.
 """
 
 import numpy as np
