@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "heavyedge-dataset"
+version = "0.0.0"
+authors = [
+    {name = "Jisoo Song", email = "jeesoo9595@snu.ac.kr"}
+]
+description = "PyTorch-compatible edge profile dataset API"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = [
+    "LICENSE",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "heavyedge>=1.1.2",
+    "torch",
+]
+
+[project.urls]
+homepage = "https://pypi.python.org/pypi/heavyedge-dataset/"
+source = "https://github.com/heavyedge/heavyedge-dataset"
+documentation = "https://heavyedge-dataset.readthedocs.io"
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+]
+doc = [
+    "sphinx",
+    "numpydoc",
+    "pydata_sphinx_theme",
+    "matplotlib",
+]
+dev = [
+    "flake8",
+    "black",
+    "isort",
+    "heavyedge-dataset[test,doc]"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.isort]
+profile = "black"
+
+[tool.pytest.ini_options]
+doctest_optionflags = [
+    "NORMALIZE_WHITESPACE",
+    "IGNORE_EXCEPTION_DETAIL",
+    "ELLIPSIS",
+]
+addopts = "--ignore=doc --doctest-modules --import-mode=importlib"
