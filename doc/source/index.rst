@@ -12,5 +12,5 @@ PyTorch dataset classes for edge profiles.
 Module reference
 ================
 
-.. automodule:: heavyedge_dataset.datasets
+.. automodule:: heavyedge_dataset
     :members:
