@@ -16,12 +16,17 @@ author = "Jisoo Song"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
+    "sphinx.ext.intersphinx",
     "numpydoc",
     "matplotlib.sphinxext.plot_directive",
 ]
 
 autodoc_member_order = "bysource"
 autodoc_inherit_docstrings = False
+
+intersphinx_mapping = {
+    "heavyedge": ("https://heavyedge.readthedocs.io/", None),
+}
 
 numpydoc_use_plots = True
 numpydoc_show_class_members = False

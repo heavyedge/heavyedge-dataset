@@ -7,7 +7,7 @@
 HeavyEdge-Dataset documentation
 *******************************
 
-PyTorch dataset classes for edge profiles.
+Package to load and transform :class:`heavyedge.ProfileData` using PyTorch dataset scheme.
 
 Module reference
 ================

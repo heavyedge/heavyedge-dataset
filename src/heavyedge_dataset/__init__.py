@@ -1,4 +1,9 @@
-"""PyTorch dataset classes for edge profiles."""
+"""Custom dataset classes for edge profiles.
+
+Refer to `PyTorch tutorial <tutorial>`_ for information about custom PyTorch dataset.
+
+.. _tutorial: https://docs.pytorch.org/tutorials/beginner/data_loading_tutorial.html
+"""
 
 import abc
 import numbers
