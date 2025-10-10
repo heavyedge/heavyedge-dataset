@@ -21,6 +21,7 @@ extensions = [
 ]
 
 autodoc_member_order = "bysource"
+autodoc_inherit_docstrings = False
 
 numpydoc_use_plots = True
 numpydoc_show_class_members = False
