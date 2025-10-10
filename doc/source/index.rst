@@ -14,6 +14,3 @@ Module reference
 
 .. automodule:: heavyedge_dataset.datasets
     :members:
-
-.. automodule:: heavyedge_dataset.landmarks
-    :members:

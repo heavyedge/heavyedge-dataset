@@ -13,7 +13,7 @@ Package to load edge profile data as PyTorch dataset.
 
 HeavyEdge-Dataset provides custom dataset classes which wraps profile data file.
 
-A simple use case to load a list of profile data as two-dimensional coordinates:
+A simple use case to load a list of profiles as two-dimensional coordinates:
 
 ```python
 from heavyedge import get_sample_path, ProfileData

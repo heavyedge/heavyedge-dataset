@@ -13,8 +13,6 @@ import numpy as np
 from heavyedge.api import landmarks_type3
 from torch.utils.data import Dataset
 
-from .landmarks import math_landmarks_1d, pseudo_landmarks_1d, pseudo_landmarks_2d
-
 __all__ = [
     "ProfileDataset",
     "PseudoLmDataset",
@@ -38,14 +36,17 @@ class ProfileDatasetBase(abc.ABC):
 
     @abc.abstractmethod
     def default_transform(self, profiles, lengths):
-        """Default transform by the dataset class.
+        """Default data transformation.
+
+        Subclass must implement this method to transform the full profile
+        into target data, i.e., landmarks.
 
         Parameters
         ----------
         profiles : (N, M) array
             Profile data.
         lengths : (N,) array
-            Length of each profile.
+            Length of each profile in *profiles*.
         """
         pass
 
@@ -181,13 +182,18 @@ class PseudoLmDataset(ProfileDatasetBase, Dataset):
         return self._file
 
     def default_transform(self, profiles, lengths):
+        ret = []
         if self.m == 1:
-            ret = pseudo_landmarks_1d(profiles, lengths, self.k)
+            for Y, L in zip(profiles, lengths):
+                idxs = np.linspace(0, L - 1, self.k, dtype=int)
+                ret.append(Y[idxs].reshape(1, -1))
         elif self.m == 2:
-            ret = pseudo_landmarks_2d(self.x, profiles, lengths, self.k)
+            for Y, L in zip(profiles, lengths):
+                idxs = np.linspace(0, L - 1, self.k, dtype=int)
+                ret.append(np.stack([self.x[idxs], Y[idxs]]))
         else:
             raise ValueError(f"Invalid dimension: {self.m}")
-        return ret
+        return np.array(ret)
 
     @property
     def transform(self):
@@ -226,7 +232,13 @@ class MathLm1dDataset(ProfileDatasetBase, Dataset):
         return self._file
 
     def default_transform(self, profiles, lengths):
-        return math_landmarks_1d(profiles, lengths, self.sigma)
+        ret = []
+        for Y, L in zip(profiles, lengths):
+            Y = Y[:L]
+            indices = np.flip(landmarks_type3(Y, self.sigma))
+            y = np.concat([[np.mean(Y[: indices[0]])], Y[indices]])
+            ret.append(y.reshape(1, -1))
+        return np.array(ret)
 
     @property
     def transform(self):
