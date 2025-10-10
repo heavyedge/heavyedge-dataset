@@ -2,14 +2,12 @@
 
 __all__ = [
     "ProfileDataset",
-    "PseudoLmDataset",
-    "MathLm1dDataset",
-    "MathLm2dDataset",
+    "PseudoLandmarkDataset",
+    "MathematicalLandmarkDataset",
 ]
 
 from .datasets import (
-    MathLm1dDataset,
-    MathLm2dDataset,
+    MathematicalLandmarkDataset,
     ProfileDataset,
-    PseudoLmDataset,
+    PseudoLandmarkDataset,
 )
