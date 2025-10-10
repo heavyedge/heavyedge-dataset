@@ -49,31 +49,30 @@ class ProfileDatasetBase(abc.ABC):
     def __getitem__(self, idx):
         if isinstance(idx, numbers.Integral):
             Y, L, _ = self.file[idx]
-            ret = self._apply_transform([Y], [L])
+            Ys, Ls = [Y], [L]
         else:
-            ret = self.__getitems__(idx)
-        return ret
+            # Support multi-indexing
+            idxs = idx
+            needs_sort = isinstance(idx, (Sequence, np.ndarray))
+            if needs_sort:
+                # idxs must be sorted for h5py
+                idxs = np.array(idxs)
+                sort_idx = np.argsort(idxs)
+                idxs = idxs[sort_idx]
+            Ys, Ls, _ = self.file[idxs]
+            if needs_sort:
+                reverse_idx = np.argsort(sort_idx)
+                Ys = Ys[reverse_idx]
+                Ls = Ls[reverse_idx]
 
-    def __getitems__(self, idxs):
-        # PyTorch API
-        needs_sort = isinstance(idxs, (Sequence, np.ndarray))
-        if needs_sort:
-            # idxs must be sorted for h5py
-            idxs = np.array(idxs)
-            sort_idx = np.argsort(idxs)
-            idxs = idxs[sort_idx]
-        Ys, Ls, _ = self.file[idxs]
-        if needs_sort:
-            reverse_idx = np.argsort(sort_idx)
-            Ys = Ys[reverse_idx]
-            Ls = Ls[reverse_idx]
-        return self._apply_transform(Ys, Ls)
-
-    def _apply_transform(self, Ys, Ls):
         ret = self.default_transform(Ys, Ls)
         if self.transform:
             ret = self.transform(ret)
         return ret
+
+    def __getitems__(self, idxs):
+        # PyTorch API
+        return self.__getitem__(idxs)
 
     @abc.abstractmethod
     def default_transform(self, profiles, lengths):
