@@ -130,6 +130,15 @@ class ProfileDataset(ProfileDatasetBase, Dataset):
         return self._transform
 
     def default_transform(self, profiles, lengths):
+        """Crop profiles by their contact points.
+
+        Parameters
+        ----------
+        profiles : (N, M) array
+            Profile data.
+        lengths : (N,) array
+            Length of each profile in *profiles*.
+        """
         if self.m == 1:
             ret = [Y[:L].reshape(1, -1) for Y, L in zip(profiles, lengths)]
         elif self.m == 2:
@@ -183,6 +192,15 @@ class PseudoLandmarkDataset(ProfileDatasetBase, Dataset):
         return self._transform
 
     def default_transform(self, profiles, lengths):
+        """Sample pseudo-landmarks from profiles.
+
+        Parameters
+        ----------
+        profiles : (N, M) array
+            Profile data.
+        lengths : (N,) array
+            Length of each profile in *profiles*.
+        """
         ret = []
         if self.m == 1:
             for Y, L in zip(profiles, lengths):
@@ -236,6 +254,15 @@ class MathematicalLandmarkDataset(ProfileDatasetBase, Dataset):
         return self._transform
 
     def default_transform(self, profiles, lengths):
+        """Detect mathematical landmarks from profiles.
+
+        Parameters
+        ----------
+        profiles : (N, M) array
+            Profile data.
+        lengths : (N,) array
+            Length of each profile in *profiles*.
+        """
         ret = []
         for Y, L in zip(profiles, lengths):
             Y = Y[:L]
