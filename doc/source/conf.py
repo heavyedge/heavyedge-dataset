@@ -25,7 +25,7 @@ autodoc_member_order = "bysource"
 autodoc_inherit_docstrings = False
 
 intersphinx_mapping = {
-    "heavyedge": ("https://heavyedge.readthedocs.io/", None),
+    "heavyedge": ("https://heavyedge.readthedocs.io/en/latest/", None),
 }
 
 numpydoc_use_plots = True
