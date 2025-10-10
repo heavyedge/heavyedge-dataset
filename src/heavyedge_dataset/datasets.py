@@ -201,8 +201,8 @@ class PseudoLandmarkDataset(ProfileDatasetBase, Dataset):
 class MathematicalLandmarkDataset(ProfileDatasetBase, Dataset):
     """Mathematical landmark dataset in 1-D.
 
-    Mathematical landmarks are points which are choosed by their mathematical properties,
-    i.e., slope or curvature.
+    Mathematical landmarks are points which are choosed by their
+    mathematical properties, i.e., slope or curvature.
 
     Parameters
     ----------
