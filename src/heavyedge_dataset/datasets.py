@@ -216,9 +216,9 @@ class MathematicalLandmarkDataset(ProfileDatasetBase, Dataset):
     Examples
     --------
     >>> from heavyedge import get_sample_path, ProfileData
-    >>> from heavyedge_dataset import MathLm1dDataset
+    >>> from heavyedge_dataset import MathematicalLandmarkDataset
     >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as file:
-    ...     data = MathLm1dDataset(file, 32)[:]
+    ...     data = MathematicalLandmarkDataset(file, 32)[:]
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
     ... plt.plot(*data.transpose(1, 2, 0), color="gray")
     """
