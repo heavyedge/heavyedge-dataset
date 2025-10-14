@@ -135,6 +135,8 @@ class PseudoLandmarkDataset(Dataset):
         Dimension of landmark coordinates.
     k : int
         Number of landmarks to sample.
+    transform : callable, optional
+        Optional transformation to be applied on samples.
 
     Examples
     --------
@@ -149,9 +151,10 @@ class PseudoLandmarkDataset(Dataset):
     ... plt.plot(*data.transpose(1, 2, 0))
     """
 
-    def __init__(self, file, m, k):
+    def __init__(self, file, m, k, transform=None):
         self.profiles = ProfileDataset(file, m=m)
         self.k = k
+        self.transform = transform
 
     def __len__(self):
         return len(self.profiles)
@@ -167,7 +170,10 @@ class PseudoLandmarkDataset(Dataset):
         for Y, L in zip(Ys, Ls):
             idxs = np.linspace(0, L - 1, self.k, dtype=int)
             X.append(Y[:, idxs])
-        return np.array(X)
+        ret = np.array(X)
+        if self.transform is not None:
+            ret = self.transform(ret)
+        return ret
 
     def __getitems__(self, idxs):
         # PyTorch API
@@ -192,6 +198,8 @@ class MathematicalLandmarkDataset(Dataset):
         Dimension of landmark coordinates.
     sigma : scalar
         Standard deviation of Gaussian kernel for landmark detection.
+    transform : callable, optional
+        Optional transformation to be applied on samples.
 
     Notes
     -----
@@ -211,9 +219,10 @@ class MathematicalLandmarkDataset(Dataset):
     (35,)
     """
 
-    def __init__(self, file, m, sigma):
+    def __init__(self, file, m, sigma, transform=None):
         self.profiles = ProfileDataset(file, m=m)
         self.sigma = sigma
+        self.transform = transform
 
     def __len__(self):
         return len(self.profiles)
@@ -230,7 +239,11 @@ class MathematicalLandmarkDataset(Dataset):
             idxs = np.flip(landmarks_type3(Y[-1, :L], self.sigma))
             X.append(Y[:, idxs])
             H.append(np.mean(Y[-1, : idxs[0]]))
-        return np.array(X), np.array(H)
+
+        ret = np.array(X), np.array(H)
+        if self.transform is not None:
+            ret = self.transform(ret)
+        return ret
 
     def __getitems__(self, idxs):
         # PyTorch API
