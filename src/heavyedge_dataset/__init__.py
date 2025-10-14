@@ -53,7 +53,7 @@ class ProfileDataset(Dataset):
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
     ... plt.plot(*profiles.transpose(1, 2, 0))
 
-    Should this dataset be used for :class:`torch.utils.data.DataLoader`,
+    Should the dataset be used for :class:`torch.utils.data.DataLoader`,
     ``collate_fn`` argument should be passed to the data loader.
 
     >>> from torch.utils.data import DataLoader
@@ -175,7 +175,14 @@ class PseudoLandmarkDataset(Dataset):
 
 
 class MathematicalLandmarkDataset(Dataset):
-    """Dataset for mathematical-landmarks of edge profiles
+    """Dataset for mathematical landmarks of edge profiles.
+
+    Loads data as a tuple of two numpy arrays:
+
+    1. Landmark coordinates, shape: (N, m, 4).
+    2. Average plateau height, shape: (N,).
+
+    N is the number of loaded data and m is dimension of coordinates.
 
     Parameters
     ----------
@@ -186,17 +193,22 @@ class MathematicalLandmarkDataset(Dataset):
     sigma : scalar
         Standard deviation of Gaussian kernel for landmark detection.
 
+    Notes
+    -----
+    Refer to docstring of :class:`ProfileDataset` for caveats when
+    using the dataset for :class:`torch.utils.data.DataLoader`.
+
     Examples
     --------
     >>> from heavyedge import ProfileData, get_sample_path
     >>> from heavyedge_dataset import MathematicalLandmarkDataset
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as file:
     ...     dataset = MathematicalLandmarkDataset(file, 2, 32)
-    ...     data = dataset[:]
-    >>> data.shape
+    ...     landmarks, height = dataset[:]
+    >>> landmarks.shape
     (35, 2, 4)
-    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
-    ... plt.plot(*data.transpose(1, 2, 0))
+    >>> height.shape
+    (35,)
     """
 
     def __init__(self, file, m, sigma):
@@ -213,11 +225,12 @@ class MathematicalLandmarkDataset(Dataset):
         else:
             Ys, Ls = self.profiles[idx]
 
-        X = []
+        X, H = [], []
         for Y, L in zip(Ys, Ls):
             idxs = np.flip(landmarks_type3(Y[-1, :L], self.sigma))
             X.append(Y[:, idxs])
-        return np.array(X)
+            H.append(np.mean(Y[-1, : idxs[0]]))
+        return np.array(X), np.array(H)
 
     def __getitems__(self, idxs):
         # PyTorch API
