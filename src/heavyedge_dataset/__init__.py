@@ -22,7 +22,7 @@ class ProfileDataset(Dataset):
     Loads data as a tuple of two numpy arrays:
 
     1. Profile data, shape: (N, m, L).
-    2. Length of each profile, shape: (N,),
+    2. Length of each profile, shape: (N,).
 
     N is the number of loaded data, m is dimension of coordinates, and
     L is the maximum length of profiles.
