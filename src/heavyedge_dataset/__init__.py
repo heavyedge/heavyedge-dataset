@@ -85,7 +85,10 @@ class ProfileDataset(Dataset):
             Y = np.concatenate([x, Y], axis=-2)
         else:
             raise ValueError(f"Unsupported dimension: {self.m} (Must be 1 or 2).")
-        return (Y, L)
+        ret = (Y, L)
+        if self.transform is not None:
+            ret = self.transform(ret)
+        return ret
 
     def __getitems__(self, idxs):
         # PyTorch API
