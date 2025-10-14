@@ -18,7 +18,7 @@ A simple use case to load two-dimensional coordinates of profiles and their leng
 ```python
 from heavyedge import get_sample_path, ProfileData
 from heavyedge_dataset import ProfileDataset
-with ProfileData(get_sample_path("Prep-Type2.h5")) as file:  # Profile data file object
+with ProfileData(get_sample_path("Prep-Type2.h5")) as file:
     data = ProfileDataset(file, 2)[:]
 ```
 
