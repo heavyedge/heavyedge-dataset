@@ -9,11 +9,13 @@ import numbers
 from collections.abc import Sequence
 
 import numpy as np
+from heavyedge.api import landmarks_type3
 from torch.utils.data import Dataset
 
 __all__ = [
     "ProfileDataset",
     "PseudoLandmarkDataset",
+    "MathematicalLandmarkDataset",
 ]
 
 
@@ -121,7 +123,7 @@ class ProfileDataset(Dataset):
 
 
 class PseudoLandmarkDataset(Dataset):
-    """Edge profile pseudo-landmark dataset.
+    """Dataset for pseudo-landmarks of edge profiles
 
     Parameters
     ----------
@@ -129,7 +131,7 @@ class PseudoLandmarkDataset(Dataset):
         Open hdf5 file.
     m : {1, 2}
         Dimension of landmark coordinates.
-    K : int
+    k : int
         Number of landmarks to sample.
 
     Examples
@@ -162,6 +164,56 @@ class PseudoLandmarkDataset(Dataset):
         X = []
         for Y, L in zip(Ys, Ls):
             idxs = np.linspace(0, L - 1, self.k, dtype=int)
+            X.append(Y[:, idxs])
+        return np.array(X)
+
+    def __getitems__(self, idxs):
+        # PyTorch API
+        return self.__getitem__(idxs)
+
+
+class MathematicalLandmarkDataset(Dataset):
+    """Dataset for mathematical-landmarks of edge profiles
+
+    Parameters
+    ----------
+    file : heavyedge.ProfileData
+        Open hdf5 file.
+    m : {1, 2}
+        Dimension of landmark coordinates.
+    sigma : scalar
+        Standard deviation of Gaussian kernel for landmark detection.
+
+    Examples
+    --------
+    >>> from heavyedge import ProfileData, get_sample_path
+    >>> from heavyedge_dataset import MathematicalLandmarkDataset
+    >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as file:
+    ...     dataset = MathematicalLandmarkDataset(file, 1, 32)
+    ...     data = dataset[:]
+    >>> data.shape
+    (35, 2, 4)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... plt.plot(*data.transpose(1, 2, 0))
+    """
+
+    def __init__(self, file, m, sigma):
+        self.profiles = ProfileDataset(file, m=m)
+        self.sigma = sigma
+
+    def __len__(self):
+        return len(self.profiles)
+
+    def __getitem__(self, idx):
+        if isinstance(idx, numbers.Integral):
+            Y, L = self.profiles[idx]
+            Ys, Ls = [Y], [L]
+        else:
+            Ys, Ls = self.profiles[idx]
+
+        X = []
+        for Y, L in zip(Ys, Ls):
+            idxs = np.flip(landmarks_type3(Y[-1, :L], self.sigma))
             X.append(Y[:, idxs])
         return np.array(X)
 
