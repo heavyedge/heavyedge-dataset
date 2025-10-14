@@ -50,6 +50,8 @@ class ProfileDataset(Dataset):
     (22, 2, 3200)
     >>> lengths.shape
     (22,)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... plt.plot(*profiles.transpose(1, 2, 0))
 
     Should this dataset be used for :class:`torch.utils.data.DataLoader`,
     ``collate_fn`` argument should be passed to the data loader.
@@ -189,7 +191,7 @@ class MathematicalLandmarkDataset(Dataset):
     >>> from heavyedge import ProfileData, get_sample_path
     >>> from heavyedge_dataset import MathematicalLandmarkDataset
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as file:
-    ...     dataset = MathematicalLandmarkDataset(file, 1, 32)
+    ...     dataset = MathematicalLandmarkDataset(file, 2, 32)
     ...     data = dataset[:]
     >>> data.shape
     (35, 2, 4)
