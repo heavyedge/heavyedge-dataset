@@ -149,6 +149,19 @@ class PseudoLandmarkDataset(Dataset):
     (18, 1, 10)
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
     ... plt.plot(*data.transpose(1, 2, 0))
+
+    Because sampling pseudo-landmark requires loading full profile data,
+    loading large dataset can cause memory failure even if the output data is managable.
+    This can be avoided by batched loading with :class:`torch.utils.data.DataLoader`.
+
+    >>> import numpy as np
+    >>> from torch.utils.data import DataLoader
+    >>> with ProfileData(get_sample_path("Prep-Type1.h5")) as file:
+    ...     dataset = PseudoLandmarkDataset(file, 1, 10)
+    ...     loader = DataLoader(dataset, batch_size=10)
+    ...     data = np.concatenate(list(loader))
+    >>> data.shape
+    (18, 1, 10)
     """
 
     def __init__(self, file, m, k, transform=None):
@@ -201,11 +214,6 @@ class MathematicalLandmarkDataset(Dataset):
     transform : callable, optional
         Optional transformation to be applied on samples.
 
-    Notes
-    -----
-    Refer to docstring of :class:`ProfileDataset` for caveats when
-    using the dataset for :class:`torch.utils.data.DataLoader`.
-
     Examples
     --------
     >>> from heavyedge import ProfileData, get_sample_path
@@ -217,6 +225,20 @@ class MathematicalLandmarkDataset(Dataset):
     (35, 2, 4)
     >>> height.shape
     (35,)
+
+    Because sampling mathematical landmark requires loading full profile data,
+    loading large dataset can cause memory failure even if the output data is managable.
+    This can be avoided by batched loading with :class:`torch.utils.data.DataLoader`.
+    Note that ``collate_fn`` argument should be passed to the data loader.
+
+    >>> import numpy as np
+    >>> from torch.utils.data import DataLoader
+    >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as file:
+    ...     dataset = MathematicalLandmarkDataset(file, 2, 32)
+    ...     loader = DataLoader(dataset, batch_size=10, collate_fn=lambda x: x)
+    ...     landmarks = np.concatenate([lm for lm, _ in loader])
+    >>> landmarks.shape
+    (35, 2, 4)
     """
 
     def __init__(self, file, m, sigma, transform=None):
