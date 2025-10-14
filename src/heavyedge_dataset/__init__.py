@@ -1,6 +1,6 @@
-"""Package to load :class:`heavyedge.ProfileData` using PyTorch dataset scheme.
+"""Package to load edge profile data using PyTorch dataset.
 
-Refer to `PyTorch tutorial <tutorial>`_ for information about custom PyTorch dataset.
+Refer to `PyTorch tutorial <tutorial>`_ for information about custom dataset.
 
 .. _tutorial: https://docs.pytorch.org/tutorials/beginner/data_loading_tutorial.html
 """
@@ -27,9 +27,6 @@ class ProfileDataset(Dataset):
     N is the number of loaded data, m is dimension of coordinates, and
     L is the maximum length of profiles.
 
-    Data can be indexed either by a single integer, by a slice, or by a sequence.
-    When a single integer index is used, data do not have the first axis.
-
     Parameters
     ----------
     file : heavyedge.ProfileData
@@ -45,9 +42,36 @@ class ProfileDataset(Dataset):
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge_dataset import ProfileDataset
     >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as file:
-    ...     profiles, _ = ProfileDataset(file, m=2)[:]
+    ...     profiles, lengths = ProfileDataset(file, m=2)[:]
     >>> profiles.shape
     (22, 2, 3200)
+    >>> lengths.shape
+    (22,)
+
+    Should this dataset be used for :class:`torch.utils.data.DataLoader`,
+    ``collate_fn`` argument should be passed to the data loader.
+
+    >>> from torch.utils.data import DataLoader
+    >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as file:
+    ...     dataset = ProfileDataset(file, m=2)
+    ...     loader = DataLoader(dataset, collate_fn=lambda x: x)
+    ...     profiles, lengths = next(iter(loader))
+    >>> profiles.shape
+    (1, 2, 3200)
+    >>> lengths.shape
+    (1,)
+
+    If data should be loaded as :class:`torch.Tensor`, pass ``transform`` argument.
+
+    >>> import torch
+    >>> def to_tensor(sample):
+    ...     return (torch.from_numpy(sample[0]), torch.from_numpy(sample[1]))
+    >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as file:
+    ...     dataset = ProfileDataset(file, m=2, transform=to_tensor)
+    ...     loader = DataLoader(dataset, collate_fn=lambda x: x)
+    ...     profiles, lengths = next(iter(loader))
+    >>> type(profiles)
+    <class 'torch.Tensor'>
     """
 
     def __init__(self, file, m=1, transform=None):
