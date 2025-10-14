@@ -7,10 +7,5 @@
 HeavyEdge-Dataset documentation
 *******************************
 
-Package to load and transform :class:`heavyedge.ProfileData` using PyTorch dataset scheme.
-
-Module reference
-================
-
 .. automodule:: heavyedge_dataset
     :members:
