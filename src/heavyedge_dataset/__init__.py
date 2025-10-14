@@ -13,6 +13,7 @@ from torch.utils.data import Dataset
 
 __all__ = [
     "ProfileDataset",
+    "PseudoLandmarkDataset",
 ]
 
 
@@ -113,6 +114,56 @@ class ProfileDataset(Dataset):
         if self.transform is not None:
             ret = self.transform(ret)
         return ret
+
+    def __getitems__(self, idxs):
+        # PyTorch API
+        return self.__getitem__(idxs)
+
+
+class PseudoLandmarkDataset(Dataset):
+    """Edge profile pseudo-landmark dataset.
+
+    Parameters
+    ----------
+    file : heavyedge.ProfileData
+        Open hdf5 file.
+    m : {1, 2}
+        Dimension of landmark coordinates.
+    K : int
+        Number of landmarks to sample.
+
+    Examples
+    --------
+    >>> from heavyedge import ProfileData, get_sample_path
+    >>> from heavyedge_dataset import PseudoLandmarkDataset
+    >>> with ProfileData(get_sample_path("Prep-Type1.h5")) as file:
+    ...     dataset = PseudoLandmarkDataset(file, 1, 10)
+    ...     data = dataset[:]
+    >>> data.shape
+    (18, 1, 10)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... plt.plot(*data.transpose(1, 2, 0))
+    """
+
+    def __init__(self, file, m, k):
+        self.profiles = ProfileDataset(file, m=m)
+        self.k = k
+
+    def __len__(self):
+        return len(self.profiles)
+
+    def __getitem__(self, idx):
+        if isinstance(idx, numbers.Integral):
+            Y, L = self.profiles[idx]
+            Ys, Ls = [Y], [L]
+        else:
+            Ys, Ls = self.profiles[idx]
+
+        X = []
+        for Y, L in zip(Ys, Ls):
+            idxs = np.linspace(0, L - 1, self.k, dtype=int)
+            X.append(Y[:, idxs])
+        return np.array(X)
 
     def __getitems__(self, idxs):
         # PyTorch API
