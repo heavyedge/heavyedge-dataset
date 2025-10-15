@@ -9,7 +9,7 @@ import numbers
 from collections.abc import Sequence
 
 import numpy as np
-from heavyedge.api import landmarks_type3
+from heavyedge_landmarks import landmarks_type3, pseudo_landmarks
 from torch.utils.data import Dataset
 
 __all__ = [
@@ -165,7 +165,8 @@ class PseudoLandmarkDataset(Dataset):
     """
 
     def __init__(self, file, m, k, transform=None):
-        self.profiles = ProfileDataset(file, m=m)
+        self.profiles = ProfileDataset(file, m=1)
+        self.m = m
         self.k = k
         self.transform = transform
 
@@ -175,15 +176,14 @@ class PseudoLandmarkDataset(Dataset):
     def __getitem__(self, idx):
         if isinstance(idx, numbers.Integral):
             Y, L = self.profiles[idx]
-            Ys, Ls = [Y], [L]
+            Ys, Ls = Y[np.newaxis, ...], L[np.newaxis, ...]
         else:
             Ys, Ls = self.profiles[idx]
+        Ys = Ys.squeeze(axis=1)
 
-        X = []
-        for Y, L in zip(Ys, Ls):
-            idxs = np.linspace(0, L - 1, self.k, dtype=int)
-            X.append(Y[:, idxs])
-        ret = np.array(X)
+        ret = pseudo_landmarks(self.profiles.x, Ys, Ls, self.k)
+        if self.m == 1:
+            ret = ret[:, 1:2, :]
         if self.transform is not None:
             ret = self.transform(ret)
         return ret
@@ -214,6 +214,10 @@ class MathematicalLandmarkDataset(Dataset):
     transform : callable, optional
         Optional transformation to be applied on samples.
 
+    Notes
+    -----
+    Landmark points are ascending in X coordinates.
+
     Examples
     --------
     >>> from heavyedge import ProfileData, get_sample_path
@@ -242,7 +246,8 @@ class MathematicalLandmarkDataset(Dataset):
     """
 
     def __init__(self, file, m, sigma, transform=None):
-        self.profiles = ProfileDataset(file, m=m)
+        self.profiles = ProfileDataset(file, m=1)
+        self.m = m
         self.sigma = sigma
         self.transform = transform
 
@@ -255,14 +260,14 @@ class MathematicalLandmarkDataset(Dataset):
             Ys, Ls = [Y], [L]
         else:
             Ys, Ls = self.profiles[idx]
+        Ys = Ys.squeeze(axis=1)
 
-        X, H = [], []
-        for Y, L in zip(Ys, Ls):
-            idxs = np.flip(landmarks_type3(Y[-1, :L], self.sigma))
-            X.append(Y[:, idxs])
-            H.append(np.mean(Y[-1, : idxs[0]]))
-
-        ret = np.array(X), np.array(H)
+        X = landmarks_type3(self.profiles.x, Ys, Ls, self.sigma)
+        knee_idx = np.searchsorted(self.profiles.x, X[:, 0, -1])
+        H = []
+        for Y, idx in zip(Ys, knee_idx):
+            H.append(np.mean(Y[:idx]))
+        ret = (np.flip(X, axis=-1), np.array(H))
         if self.transform is not None:
             ret = self.transform(ret)
         return ret
