@@ -24,6 +24,12 @@ with ProfileData(get_sample_path("Prep-Type2.h5")) as file:
 
 Refer to the package documentation for more information.
 
+## Installation
+
+```
+$ pip install heavyedge-dataset
+```
+
 ## Documentation
 
 The manual can be found online:
