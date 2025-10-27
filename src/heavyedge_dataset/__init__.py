@@ -260,7 +260,7 @@ class MathematicalLandmarkDataset(Dataset):
         x = self.profiles.x
         if isinstance(idx, numbers.Integral):
             Y, L = self.profiles[idx]
-            Ys, Ls = [Y], [L]
+            Ys, Ls = Y[np.newaxis, ...], L[np.newaxis, ...]
         else:
             Ys, Ls = self.profiles[idx]
         Ys = Ys.squeeze(axis=1)
