@@ -198,7 +198,7 @@ class MathematicalLandmarkDataset(Dataset):
 
     Loads data as a tuple of two numpy arrays:
 
-    1. Landmark coordinates, shape: (N, m, 4).
+    1. Landmark coordinates, shape: (N, m, 5).
     2. Average plateau height, shape: (N,).
 
     N is the number of loaded data and m is dimension of coordinates.
@@ -216,7 +216,9 @@ class MathematicalLandmarkDataset(Dataset):
 
     Notes
     -----
-    Landmark points are ascending in X coordinates.
+    Unlike HeavyEdge-Landmarks package, landmark points returned by this dataset
+    are sorted by ascending X coordinates.
+    Additionally, the point at X=0 is included as the first landmark.
 
     Examples
     --------
@@ -226,7 +228,7 @@ class MathematicalLandmarkDataset(Dataset):
     ...     dataset = MathematicalLandmarkDataset(file, 2, 32)
     ...     landmarks, height = dataset[:]
     >>> landmarks.shape
-    (35, 2, 4)
+    (35, 2, 5)
     >>> height.shape
     (35,)
 
@@ -242,7 +244,7 @@ class MathematicalLandmarkDataset(Dataset):
     ...     loader = DataLoader(dataset, batch_size=10, collate_fn=lambda x: x)
     ...     landmarks = np.concatenate([lm for lm, _ in loader])
     >>> landmarks.shape
-    (35, 2, 4)
+    (35, 2, 5)
     """
 
     def __init__(self, file, m, sigma, transform=None):
@@ -255,19 +257,26 @@ class MathematicalLandmarkDataset(Dataset):
         return len(self.profiles)
 
     def __getitem__(self, idx):
+        x = self.profiles.x
         if isinstance(idx, numbers.Integral):
             Y, L = self.profiles[idx]
             Ys, Ls = [Y], [L]
         else:
             Ys, Ls = self.profiles[idx]
         Ys = Ys.squeeze(axis=1)
+        X = np.flip(landmarks_type3(x, Ys, Ls, self.sigma), axis=-1)
 
-        X = landmarks_type3(self.profiles.x, Ys, Ls, self.sigma)
-        knee_idx = np.searchsorted(self.profiles.x, X[:, 0, -1])
+        # Prepend point at x=0
+        x_zeros = np.stack([np.full((len(Ys),), x[0]), Ys[:, 0]], axis=1)
+        X = np.concatenate([x_zeros[..., np.newaxis], X], axis=-1)
+
+        # Find average plateau height
+        knee_idx = np.searchsorted(x, X[:, 0, 1])
         H = []
         for Y, idx in zip(Ys, knee_idx):
             H.append(np.mean(Y[:idx]))
-        ret = (np.flip(X, axis=-1), np.array(H))
+
+        ret = (X, np.array(H))
         if self.transform is not None:
             ret = self.transform(ret)
         return ret
