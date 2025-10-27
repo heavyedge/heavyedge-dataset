@@ -57,6 +57,13 @@ class ProfileDataset(Dataset):
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
     ... plt.plot(*profiles.transpose(1, 2, 0))
 
+    Indexing a single data.
+
+    >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as file:
+    ...     profiles, lengths = ProfileDataset(file, m=1)[0]
+    >>> profiles.shape
+    (1, 3200)
+
     Should the dataset be used for :class:`torch.utils.data.DataLoader`,
     ``collate_fn`` argument should be passed to the data loader.
 
@@ -154,6 +161,14 @@ class PseudoLandmarkDataset(Dataset):
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
     ... plt.plot(*data.transpose(1, 2, 0))
 
+    Indexing a single data.
+
+    >>> with ProfileData(get_sample_path("Prep-Type1.h5")) as file:
+    ...     dataset = PseudoLandmarkDataset(file, 1, 10)
+    ...     data = dataset[0]
+    >>> data.shape
+    (1, 10)
+
     Because sampling pseudo-landmark requires loading full profile data,
     loading large dataset can cause memory failure even if the output data is managable.
     This can be avoided by batched loading with :class:`torch.utils.data.DataLoader`.
@@ -188,6 +203,8 @@ class PseudoLandmarkDataset(Dataset):
         ret = pseudo_landmarks(self.profiles.x, Ys, Ls, self.k)
         if self.m == 1:
             ret = ret[:, 1:2, :]
+        if isinstance(idx, numbers.Integral):
+            ret = ret[0]
         if self.transform is not None:
             ret = self.transform(ret)
         return ret
@@ -243,6 +260,14 @@ class MathematicalLandmarkDataset(Dataset):
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
     ... plt.plot(*landmarks.transpose(1, 2, 0))
 
+    Indexing a single data.
+
+    >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as file:
+    ...     dataset = MathematicalLandmarkDataset(file, 2, 32)
+    ...     landmarks, height = dataset[0]
+    >>> landmarks.shape
+    (2, 5)
+
     Because sampling mathematical landmark requires loading full profile data,
     loading large dataset can cause memory failure even if the output data is managable.
     This can be avoided by batched loading with :class:`torch.utils.data.DataLoader`.
@@ -282,14 +307,17 @@ class MathematicalLandmarkDataset(Dataset):
         X = np.concatenate([x_zeros[..., np.newaxis], X], axis=-1)
 
         # Find average plateau height
-        knee_idx = np.searchsorted(x, X[:, 0, 1])
+        knee_idxs = np.searchsorted(x, X[:, 0, 1])
         H = []
-        for Y, idx in zip(Ys, knee_idx):
-            H.append(np.mean(Y[:idx]))
+        for Y, knee_idx in zip(Ys, knee_idxs):
+            H.append(np.mean(Y[:knee_idx]))
 
         if self.m == 1:
             X = X[:, 1:2, :]
-        ret = (X, np.array(H))
+        if isinstance(idx, numbers.Integral):
+            ret = (X[0], np.array(H)[0])
+        else:
+            ret = (X, np.array(H))
         if self.transform is not None:
             ret = self.transform(ret)
         return ret
