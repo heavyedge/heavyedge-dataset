@@ -45,6 +45,10 @@ class ProfileDataset(Dataset):
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge_dataset import ProfileDataset
     >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as file:
+    ...     profiles, lengths = ProfileDataset(file, m=1)[:]
+    >>> profiles.shape
+    (22, 1, 3200)
+    >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as file:
     ...     profiles, lengths = ProfileDataset(file, m=2)[:]
     >>> profiles.shape
     (22, 2, 3200)
@@ -225,12 +229,19 @@ class MathematicalLandmarkDataset(Dataset):
     >>> from heavyedge import ProfileData, get_sample_path
     >>> from heavyedge_dataset import MathematicalLandmarkDataset
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as file:
+    ...     dataset = MathematicalLandmarkDataset(file, 1, 32)
+    ...     landmarks, height = dataset[:]
+    >>> landmarks.shape
+    (35, 1, 5)
+    >>> height.shape
+    (35,)
+    >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as file:
     ...     dataset = MathematicalLandmarkDataset(file, 2, 32)
     ...     landmarks, height = dataset[:]
     >>> landmarks.shape
     (35, 2, 5)
-    >>> height.shape
-    (35,)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... plt.plot(*landmarks.transpose(1, 2, 0))
 
     Because sampling mathematical landmark requires loading full profile data,
     loading large dataset can cause memory failure even if the output data is managable.
@@ -276,6 +287,8 @@ class MathematicalLandmarkDataset(Dataset):
         for Y, idx in zip(Ys, knee_idx):
             H.append(np.mean(Y[:idx]))
 
+        if self.m == 1:
+            X = X[:, 1:2, :]
         ret = (X, np.array(H))
         if self.transform is not None:
             ret = self.transform(ret)
