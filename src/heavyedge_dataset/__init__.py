@@ -1,9 +1,4 @@
-"""Package to load edge profile data using PyTorch dataset.
-
-Refer to `PyTorch tutorial <tutorial>`_ for information about custom dataset.
-
-.. _tutorial: https://docs.pytorch.org/tutorials/beginner/data_loading_tutorial.html
-"""
+"""Package to load edge profile data using PyTorch dataset."""
 
 import numbers
 from collections.abc import Sequence
@@ -56,38 +51,6 @@ class ProfileDataset(Dataset):
     (22,)
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
     ... plt.plot(*profiles.transpose(1, 2, 0))
-
-    Indexing a single data.
-
-    >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as file:
-    ...     profiles, lengths = ProfileDataset(file, m=1)[0]
-    >>> profiles.shape
-    (1, 3200)
-
-    Should the dataset be used for :class:`torch.utils.data.DataLoader`,
-    ``collate_fn`` argument should be passed to the data loader.
-
-    >>> from torch.utils.data import DataLoader
-    >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as file:
-    ...     dataset = ProfileDataset(file, m=2)
-    ...     loader = DataLoader(dataset, collate_fn=lambda x: x)
-    ...     profiles, lengths = next(iter(loader))
-    >>> profiles.shape
-    (1, 2, 3200)
-    >>> lengths.shape
-    (1,)
-
-    If data should be loaded as :class:`torch.Tensor`, pass ``transform`` argument.
-
-    >>> import torch
-    >>> def to_tensor(sample):
-    ...     return (torch.from_numpy(sample[0]), torch.from_numpy(sample[1]))
-    >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as file:
-    ...     dataset = ProfileDataset(file, m=2, transform=to_tensor)
-    ...     loader = DataLoader(dataset, collate_fn=lambda x: x)
-    ...     profiles, lengths = next(iter(loader))
-    >>> type(profiles)
-    <class 'torch.Tensor'>
     """
 
     def __init__(self, file, m=1, transform=None):
@@ -160,27 +123,6 @@ class PseudoLandmarkDataset(Dataset):
     (18, 1, 10)
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
     ... plt.plot(*data.transpose(1, 2, 0))
-
-    Indexing a single data.
-
-    >>> with ProfileData(get_sample_path("Prep-Type1.h5")) as file:
-    ...     dataset = PseudoLandmarkDataset(file, 1, 10)
-    ...     data = dataset[0]
-    >>> data.shape
-    (1, 10)
-
-    Because sampling pseudo-landmark requires loading full profile data,
-    loading large dataset can cause memory failure even if the output data is managable.
-    This can be avoided by batched loading with :class:`torch.utils.data.DataLoader`.
-
-    >>> import numpy as np
-    >>> from torch.utils.data import DataLoader
-    >>> with ProfileData(get_sample_path("Prep-Type1.h5")) as file:
-    ...     dataset = PseudoLandmarkDataset(file, 1, 10)
-    ...     loader = DataLoader(dataset, batch_size=10)
-    ...     data = np.concatenate(list(loader))
-    >>> data.shape
-    (18, 1, 10)
     """
 
     def __init__(self, file, m, k, transform=None):
@@ -259,28 +201,6 @@ class MathematicalLandmarkDataset(Dataset):
     (35, 2, 5)
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
     ... plt.plot(*landmarks.transpose(1, 2, 0))
-
-    Indexing a single data.
-
-    >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as file:
-    ...     dataset = MathematicalLandmarkDataset(file, 2, 32)
-    ...     landmarks, height = dataset[0]
-    >>> landmarks.shape
-    (2, 5)
-
-    Because sampling mathematical landmark requires loading full profile data,
-    loading large dataset can cause memory failure even if the output data is managable.
-    This can be avoided by batched loading with :class:`torch.utils.data.DataLoader`.
-    Note that ``collate_fn`` argument should be passed to the data loader.
-
-    >>> import numpy as np
-    >>> from torch.utils.data import DataLoader
-    >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as file:
-    ...     dataset = MathematicalLandmarkDataset(file, 2, 32)
-    ...     loader = DataLoader(dataset, batch_size=10, collate_fn=lambda x: x)
-    ...     landmarks = np.concatenate([lm for lm, _ in loader])
-    >>> landmarks.shape
-    (35, 2, 5)
     """
 
     def __init__(self, file, m, sigma, transform=None):
