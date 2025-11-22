@@ -4,7 +4,12 @@ import numbers
 from collections.abc import Sequence
 
 import numpy as np
-from heavyedge_landmarks import landmarks_type3, pseudo_landmarks
+from heavyedge_landmarks import (
+    landmarks_type1,
+    landmarks_type2,
+    landmarks_type3,
+    pseudo_landmarks,
+)
 from torch.utils.data import Dataset
 
 __all__ = [
@@ -161,10 +166,12 @@ class MathematicalLandmarkDataset(Dataset):
 
     Loads data as a tuple of two numpy arrays:
 
-    1. Landmark coordinates, shape: (N, m, 5).
+    1. Landmark coordinates, shape: (N, m, k).
     2. Average plateau height, shape: (N,).
 
-    N is the number of loaded data and m is dimension of coordinates.
+    N is the number of loaded data, m is dimension of coordinates, and
+    k is the number of mathematical landmarks detected; k=5 for type 3 profiles and
+    k=4 for type 1 and type 2 profiles.
 
     Parameters
     ----------
@@ -174,6 +181,8 @@ class MathematicalLandmarkDataset(Dataset):
         Dimension of landmark coordinates.
     sigma : scalar
         Standard deviation of Gaussian kernel for landmark detection.
+    ptype : {1, 2, 3}, default=3
+        Assumed type of edge profiles.
     transform : callable, optional
         Optional transformation to be applied on samples.
 
@@ -203,10 +212,11 @@ class MathematicalLandmarkDataset(Dataset):
     ... plt.plot(*landmarks.transpose(1, 2, 0))
     """
 
-    def __init__(self, file, m, sigma, transform=None):
+    def __init__(self, file, m, sigma, ptype=3, transform=None):
         self.profiles = ProfileDataset(file, m=1)
         self.m = m
         self.sigma = sigma
+        self.ptype = ptype
         self.transform = transform
 
     def __len__(self):
@@ -220,7 +230,17 @@ class MathematicalLandmarkDataset(Dataset):
         else:
             Ys, Ls = self.profiles[idx]
         Ys = Ys.squeeze(axis=1)
-        X = np.flip(landmarks_type3(x, Ys, Ls, self.sigma), axis=-1)
+        if self.ptype == 1:
+            lm = landmarks_type1(x, Ys, Ls, self.sigma)
+        elif self.ptype == 2:
+            lm = landmarks_type2(x, Ys, Ls, self.sigma)
+        elif self.ptype == 3:
+            lm = landmarks_type3(x, Ys, Ls, self.sigma)
+        else:
+            raise ValueError(
+                f"Unsupported profile type: {self.ptype} (Must be 1, 2, or 3)."
+            )
+        X = np.flip(lm, axis=-1)
 
         # Prepend point at x=0
         x_zeros = np.stack([np.full((len(Ys),), x[0]), Ys[:, 0]], axis=1)
