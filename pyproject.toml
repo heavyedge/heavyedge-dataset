@@ -29,7 +29,7 @@ classifiers = [
 ]
 dependencies = [
     "heavyedge>=1.1.2",
-    "heavyedge-landmarks",
+    "heavyedge-landmarks>=1.4.0",
     "torch",
 ]
 
